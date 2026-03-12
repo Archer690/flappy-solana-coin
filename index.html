@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Flappy Coin</title>
+
+<style>
+
+body{
+margin:0;
+background:#111;
+color:white;
+text-align:center;
+font-family:Arial;
+}
+
+canvas{
+background:#70c5ce;
+display:block;
+margin:auto;
+border-radius:10px;
+}
+
+button{
+padding:10px 14px;
+margin:10px;
+border:none;
+border-radius:6px;
+background:#ffcc00;
+font-weight:bold;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Flappy Solana Coin</h2>
+
+<button id="share" style="display:none;">Share Score</button>
+
+<canvas id="game" width="400" height="600"></canvas>
+
+<script>
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+let bird={x:80,y:300,vel:0};
+let pipes=[];
+let score=0;
+let gameOver=false;
+
+function spawnPipe(){
+
+pipes.push({
+x:400,
+gap:120,
+top:Math.random()*300
+});
+
+}
+
+setInterval(spawnPipe,1500);
+
+function jump(){
+
+if(gameOver)return;
+
+bird.vel=-6;
+
+}
+
+document.addEventListener("keydown",jump);
+canvas.addEventListener("touchstart",jump);
+
+function update(){
+
+bird.vel+=0.4;
+bird.y+=bird.vel;
+
+if(bird.y>600) endGame();
+
+pipes.forEach(p=>{
+
+p.x-=2;
+
+if(
+bird.x>p.x &&
+bird.x<p.x+60 &&
+(bird.y<p.top || bird.y>p.top+p.gap)
+){
+endGame();
+}
+
+if(p.x===78) score++;
+
+});
+
+}
+
+function draw(){
+
+ctx.clearRect(0,0,400,600);
+
+ctx.fillStyle="yellow";
+ctx.beginPath();
+ctx.arc(bird.x,bird.y,12,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="green";
+
+pipes.forEach(p=>{
+ctx.fillRect(p.x,0,60,p.top);
+ctx.fillRect(p.x,p.top+p.gap,60,600);
+});
+
+ctx.fillStyle="black";
+ctx.font="22px Arial";
+ctx.fillText("Score: "+score,10,30);
+
+}
+
+function loop(){
+
+if(!gameOver){
+
+update();
+draw();
+requestAnimationFrame(loop);
+
+}
+
+}
+
+loop();
+
+function endGame(){
+
+gameOver=true;
+
+alert("Game Over. Score: "+score);
+
+const btn=document.getElementById("share");
+btn.style.display="block";
+
+btn.onclick=()=>{
+
+const text=`I scored ${score} on Flappy Solana Coin 🚀`;
+
+window.open(
+"https://twitter.com/intent/tweet?text="+encodeURIComponent(text)
+);
+
+};
+
+}
+
+</script>
+
+</body>
+</html>
