@@ -1,69 +1,104 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+
 <meta charset="UTF-8">
-<title>Flappy Coin</title>
+<title>Flappy Solana Coin</title>
 
 <style>
 
 body{
 margin:0;
-background:#111;
+background:#0b0b0b;
 color:white;
 text-align:center;
 font-family:Arial;
 }
 
+h1{
+margin-top:10px;
+}
+
 canvas{
-background:#70c5ce;
+background:linear-gradient(#70c5ce,#4da6b3);
 display:block;
 margin:auto;
-border-radius:10px;
+border-radius:12px;
+box-shadow:0 0 25px rgba(0,0,0,0.5);
 }
 
 button{
-padding:10px 14px;
-margin:10px;
-border:none;
-border-radius:6px;
+
 background:#ffcc00;
+border:none;
+padding:10px 16px;
+margin:8px;
+border-radius:6px;
 font-weight:bold;
 cursor:pointer;
+
+}
+
+#leaderboard{
+
+width:200px;
+margin:auto;
+margin-top:10px;
+
 }
 
 </style>
+
 </head>
 
 <body>
 
-<h2>Flappy Solana Coin</h2>
+<h1>Flappy Solana Coin</h1>
 
-<button id="share" style="display:none;">Share Score</button>
+<button id="shareBtn" style="display:none">Share Score</button>
 
 <canvas id="game" width="400" height="600"></canvas>
 
+<div id="leaderboard"></div>
+
 <script>
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
 let bird={x:80,y:300,vel:0};
+
 let pipes=[];
 let score=0;
 let gameOver=false;
 
+/* COIN IMAGE */
+
+let coin = new Image();
+coin.src="coin.png";
+
+/* SOUND */
+
+const jumpSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+const hitSound = new Audio("https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg");
+
+/* PIPES */
+
 function spawnPipe(){
 
 pipes.push({
+
 x:400,
-gap:120,
-top:Math.random()*300
+gap:130,
+top:Math.random()*280
+
 });
 
 }
 
 setInterval(spawnPipe,1500);
+
+/* JUMP */
 
 function jump(){
 
@@ -71,28 +106,41 @@ if(gameOver)return;
 
 bird.vel=-6;
 
+jumpSound.play();
+
 }
 
 document.addEventListener("keydown",jump);
 canvas.addEventListener("touchstart",jump);
+
+/* UPDATE */
 
 function update(){
 
 bird.vel+=0.4;
 bird.y+=bird.vel;
 
-if(bird.y>600) endGame();
+if(bird.y>600){
+
+endGame();
+
+}
 
 pipes.forEach(p=>{
 
 p.x-=2;
 
 if(
+
 bird.x>p.x &&
 bird.x<p.x+60 &&
 (bird.y<p.top || bird.y>p.top+p.gap)
+
 ){
+
+hitSound.play();
 endGame();
+
 }
 
 if(p.x===78) score++;
@@ -101,20 +149,21 @@ if(p.x===78) score++;
 
 }
 
+/* DRAW */
+
 function draw(){
 
 ctx.clearRect(0,0,400,600);
 
-ctx.fillStyle="yellow";
-ctx.beginPath();
-ctx.arc(bird.x,bird.y,12,0,Math.PI*2);
-ctx.fill();
+ctx.drawImage(coin,bird.x-16,bird.y-16,32,32);
 
 ctx.fillStyle="green";
 
 pipes.forEach(p=>{
+
 ctx.fillRect(p.x,0,60,p.top);
 ctx.fillRect(p.x,p.top+p.gap,60,600);
+
 });
 
 ctx.fillStyle="black";
@@ -123,12 +172,15 @@ ctx.fillText("Score: "+score,10,30);
 
 }
 
+/* GAME LOOP */
+
 function loop(){
 
 if(!gameOver){
 
 update();
 draw();
+
 requestAnimationFrame(loop);
 
 }
@@ -137,28 +189,72 @@ requestAnimationFrame(loop);
 
 loop();
 
+/* GAME OVER */
+
 function endGame(){
 
 gameOver=true;
 
-alert("Game Over. Score: "+score);
+saveScore(score);
 
-const btn=document.getElementById("share");
-btn.style.display="block";
+alert("Game Over! Score: "+score);
 
-btn.onclick=()=>{
+document.getElementById("shareBtn").style.display="inline";
+
+}
+
+/* SHARE BUTTON */
+
+document.getElementById("shareBtn").onclick=()=>{
 
 const text=`I scored ${score} on Flappy Solana Coin 🚀`;
 
 window.open(
+
 "https://twitter.com/intent/tweet?text="+encodeURIComponent(text)
+
 );
 
 };
 
+/* LOCAL LEADERBOARD */
+
+function saveScore(score){
+
+let scores=JSON.parse(localStorage.getItem("scores")||"[]");
+
+scores.push(score);
+
+scores.sort((a,b)=>b-a);
+
+scores=scores.slice(0,5);
+
+localStorage.setItem("scores",JSON.stringify(scores));
+
+showLeaderboard();
+
 }
+
+function showLeaderboard(){
+
+let scores=JSON.parse(localStorage.getItem("scores")||"[]");
+
+let html="<h3>Top Scores</h3>";
+
+scores.forEach((s,i)=>{
+
+html+=`<p>${i+1}. ${s}</p>`;
+
+});
+
+document.getElementById("leaderboard").innerHTML=html;
+
+}
+
+showLeaderboard();
 
 </script>
 
 </body>
 </html>
+ 
